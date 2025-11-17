@@ -1,25 +1,31 @@
-# Use Python 3.11 slim image as base
-FROM python:3.11-slim
+# Use official Python runtime as base image
+FROM python:3.9-slim
 
-# Set working directory
+# Set the working directory inside the container
 WORKDIR /app
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 # Copy requirements first for better caching
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Copy the source code
-COPY src/ ./src/
-COPY tests/ ./tests/
-COPY models/ ./models/
+# Copy all application code to container
+COPY . .
 
-# Create models directory if it doesn't exist
+# Create necessary directories
 RUN mkdir -p models
 
-# Set Python path
-ENV PYTHONPATH=/app
+# Set PYTHONPATH to include src directory
+ENV PYTHONPATH=/app/src:$PYTHONPATH
 
-# Default command
+# Expose a port (for future web service if needed)
+EXPOSE 8000
+
+# Specify default command to run the application
 CMD ["python", "src/train.py"]
